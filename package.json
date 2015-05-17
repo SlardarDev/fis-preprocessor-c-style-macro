@@ -1,0 +1,31 @@
+{
+  "name": "fis-preprocessor-c-style-macro",
+  "version": "1.0.0",
+  "description": "this is a C STYLE EXTENSTION for js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lixi520/fis-preprocessor-c-style-macro.git"
+  },
+  "keywords": [
+    "c",
+    "style",
+    "extension",
+    "fis"
+  ],
+  "author": "lixi520",
+  "email": "cesadc@126.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lixi520/fis-preprocessor-c-style-macro/issues"
+  },
+  "homepage": "https://github.com/lixi520/fis-preprocessor-c-style-macro",
+  "dependencies": {
+    "escodegen": "^1.6.1",
+    "esprima": "^2.2.0",
+    "uuid": "^2.0.1"
+  }
+}
