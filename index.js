@@ -1,6 +1,6 @@
 'use strict';
 
-var fis = require('fis');
+// var fis = require('fis'); // to make test work, add this line
 var esprima = require('esprima');
 var escodegen = require('escodegen');
 var util = require('util');
