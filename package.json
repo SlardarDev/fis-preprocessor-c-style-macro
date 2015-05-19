@@ -1,6 +1,6 @@
 {
   "name": "fis-preprocessor-c-style-macro",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "this is a C STYLE EXTENSTION for js",
   "main": "index.js",
   "scripts": {
@@ -26,6 +26,7 @@
   "dependencies": {
     "escodegen": "^1.6.1",
     "esprima": "^2.2.0",
+    "html-minifier": "^0.7.2",
     "uuid": "^2.0.1"
   }
 }

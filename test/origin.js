@@ -34,3 +34,5 @@ var options = {
         var methodName = __C_EXTENSION('__METHOD__');
     }
 };
+
+var a = __C_EXTENSION('__INLINE__', 'test.txt', 'html');

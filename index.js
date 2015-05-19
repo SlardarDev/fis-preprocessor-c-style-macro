@@ -3,8 +3,10 @@
 // var fis = require('fis'); // to make test work, add this line
 var esprima = require('esprima');
 var escodegen = require('escodegen');
+var minify = require('html-minifier').minify;
 var util = require('util');
 var uuid = require('uuid');
+var fs = require('fs');
 
 var traversal = function (node, func) {
     func(node);
@@ -81,6 +83,14 @@ var validateHandler = {
             fis.log.error(message);
             throw message;
         }
+    },
+    '__INLINE__': function (args) {
+        if (args.length < 2 || args[1].type !== 'Literal') {
+            var message = '__INLINE__ extension requires at least 2 arguments,' + 
+                'legal declarations are: __C_EXTENSION("__INLINE", filepath, filetype, needCompress)';
+            fis.log.error(message);
+            throw message;
+        }
     }
 };
 
@@ -138,6 +148,46 @@ var extensionHandler = {
     },
     '__METHOD__': function (opt) {
         methodMacroArr.push(opt);    
+    },
+    '__INLINE__': function(opt) {
+        var file = opt.file;
+        var path = file.realpath.substring(0, file.realpath.lastIndexOf(file.id));
+        var node = opt.node;
+        var args = node.arguments;
+        var targetFilePath = path + args[1].value;
+        if (!fs.existsSync(targetFilePath) || !fs.statSync(targetFilePath).isFile()) {
+            var message = util.format('in %s: %d, target file %s for __INLINE__ not exists',
+                file.id, node.loc.start.line, targetFilePath);
+            fis.log.error(message);
+            throw message;
+        }
+        var content = fis.util.read(targetFilePath);
+        node.type = 'Literal';
+        if (args.length === 2 || args[2].type !== 'Literal') {
+            node.value = content;
+            return;
+        }
+        var srcType = args[2].value.toLowerCase();
+        if (srcType === 'html' || srcType === 'htm'){
+            content = minify(content, {
+                removeComments: true,
+                removeCommentsFromCDATA: true,
+                removeCDATASectionsFromCDATA: true,
+                collapseWhitespace: true,
+                collapseBooleanAttributes: true,
+                removeAttributeQuotes: true,
+                removeRedundantAttributes: true,
+                removeEmptyAttributes: true,
+                removeScriptTypeAttributes: true,
+                caseSensitive: true,
+                minifyJS: true,
+                minifyCSS: true,
+                keepClosingSlash: true
+            });
+            node.value = content;
+            return;
+        }
+        node.value = content;
     }
 };
 
