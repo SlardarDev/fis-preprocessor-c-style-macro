@@ -1,6 +1,6 @@
 {
   "name": "fis-preprocessor-c-style-macro",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "this is a C STYLE EXTENSTION for js",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/lixi520/fis-preprocessor-c-style-macro",
   "dependencies": {
+    "clean-css": "^3.2.10",
     "escodegen": "^1.6.1",
     "esprima": "^2.2.0",
     "html-minifier": "^0.7.2",

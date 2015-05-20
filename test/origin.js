@@ -36,3 +36,5 @@ var options = {
 };
 
 var a = __C_EXTENSION('__INLINE__', 'test.txt', 'html');
+
+var b = __C_EXTENSION('__INLINE__', 'embed.css', 'css');

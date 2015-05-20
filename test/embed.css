@@ -1,0 +1,5 @@
+@import url(abc.css);
+
+a.active {
+    background-color: "red";
+}

@@ -4,6 +4,7 @@
 var esprima = require('esprima');
 var escodegen = require('escodegen');
 var minify = require('html-minifier').minify;
+var CleanCss = require('clean-css');
 var util = require('util');
 var uuid = require('uuid');
 var fs = require('fs');
@@ -94,8 +95,6 @@ var validateHandler = {
     }
 };
 
-var methodMacroArr = [];
-
 var extensionHandler = {
     // line no in the file
     '__LINE__': function (opt) {
@@ -147,7 +146,9 @@ var extensionHandler = {
             twoDigits(now.getMonth() + 1), twoDigits(now.getDate()));
     },
     '__METHOD__': function (opt) {
-        methodMacroArr.push(opt);    
+        opt.methodMacroArr.push({
+            node: opt.node
+        });    
     },
     '__INLINE__': function(opt) {
         var file = opt.file;
@@ -168,29 +169,57 @@ var extensionHandler = {
             return;
         }
         var srcType = args[2].value.toLowerCase();
-        if (srcType === 'html' || srcType === 'htm'){
-            content = minify(content, {
-                removeComments: true,
-                removeCommentsFromCDATA: true,
-                removeCDATASectionsFromCDATA: true,
-                collapseWhitespace: true,
-                collapseBooleanAttributes: true,
-                removeAttributeQuotes: true,
-                removeRedundantAttributes: true,
-                removeEmptyAttributes: true,
-                removeScriptTypeAttributes: true,
-                caseSensitive: true,
-                minifyJS: true,
-                minifyCSS: true,
-                keepClosingSlash: true
-            });
-            node.value = content;
-            return;
+        switch (srcType) {
+            case 'html':
+            case 'htm':
+                content = minifyHtml(content);
+                break;
+            case 'css':
+                content = minifyCss(content, path);
+                break;
         }
         node.value = content;
     }
 };
 
+var minifyHtml = function (htmlContent) {
+    return minify(htmlContent, {
+        removeComments: true,
+        removeCommentsFromCDATA: true,
+        removeCDATASectionsFromCDATA: true,
+        collapseWhitespace: true,
+        collapseBooleanAttributes: true,
+        removeAttributeQuotes: true,
+        removeRedundantAttributes: true,
+        removeEmptyAttributes: true,
+        removeScriptTypeAttributes: true,
+        caseSensitive: true,
+        minifyJS: true,
+        minifyCSS: true,
+        keepClosingSlash: true
+    });
+};
+
+var minifyCss = function (cssContent, path) {
+    var cleanCss = new CleanCss({
+        advanced: true,
+        aggressiveMerging: true,
+        compatibility: true,
+        relativeTo: path,
+        inliner: true
+    }).minify(cssContent);
+    if (cleanCss.errors && cleanCss.errors.length > 0) {
+        for (var i = 0; i < cleanCss.errors.length; ++i) {
+            fis.log.error(cleanCss.errors[i]);
+        }
+    }
+    if (cleanCss.warnings && cleanCss.warnings.length > 0) {
+        for (var i = 0; i < cleanCss.warings.length; ++i) {
+            fis.log.warning(cleanCss.warnings[i])
+        }
+    }
+    return cleanCss.styles;
+};
 
 var expandMacro = function (opt) {
     var args = opt.node.arguments;
@@ -241,7 +270,7 @@ var processMethodMacro = function (opt) {
     oNode.value = uuid.v1();
 };
 
-module.exports = function (content, file, conf) {
+var toBeExported = function (content, file, conf) {
     if (file.rExt !== '.js') {
         return content;
     }
@@ -251,7 +280,7 @@ module.exports = function (content, file, conf) {
             loc: true
         });
     
-        methodMacroArr = [];
+        var methodMacroArr = [];
         traversal(syntaxTree, function (node) {
             if (node.type !== 'CallExpression' ) {
                 return;
@@ -262,7 +291,8 @@ module.exports = function (content, file, conf) {
             expandMacro({
                 node: node,
                 file: file,
-                fisConf: conf
+                fisConf: conf,
+                methodMacroArr: methodMacroArr
             });
         });
         for (var i in methodMacroArr) {
@@ -275,3 +305,5 @@ module.exports = function (content, file, conf) {
     // console.log(util.inspect(syntaxTree, true, 20));
     return escodegen.generate(syntaxTree);
 };
+
+module.exports = toBeExported;
